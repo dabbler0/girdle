@@ -38,7 +38,7 @@ class CNFDisjunction:
         return CNFDisjunction(self.terms | other.terms)
 
     def get_all_variables(self):
-        for term in self.terms:
+        for term in sorted(self.terms):
             yield from term.get_all_variables()
 
     def substitute(self, mapping):
@@ -51,6 +51,54 @@ class CNFDisjunction:
                 substitution[variable] = Variable(variable.name)
 
         return self.substitute(substitution)
+
+    canonical_variables = []
+    vnames = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+
+    def canonical_variable(self, i):
+        while i >= len(CNFDisjunction.canonical_variables):
+            if i < len(CNFDisjunction.vnames):
+                CNFDisjunction.canonical_variables.append(Variable(CNFDisjunction.vnames[i]))
+            else:
+                CNFDisjunction.canonical_variables.append(Variable('_var' + str(i)))
+
+        return CNFDisjunction.canonical_variables[i]
+
+    def canonicalize(self):
+        mapping = {}
+        for x in self.get_all_variables():
+            if x not in mapping:
+                mapping[x] = self.canonical_variable(len(mapping))
+        return self.substitute(mapping)
+
+    def without(self, term):
+        return CNFDisjunction(self.terms - {term})
+
+    def reduce(self, other):
+        # Completely different variables
+        other = other.clone_vars()
+
+        candidates = []
+
+        for my_term in self.terms:
+            for their_term in other.terms:
+                if my_term.sign != their_term.sign:
+                    #print('Attempting to unify:', str(my_term), str(their_term))
+                    mgu = unify(my_term.expression, their_term.expression)
+
+                    if mgu is not None:
+                        #print('Success!')
+                        candidates.append(self.without(my_term).substitute(mgu).join(
+                            other.without(their_term).substitute(mgu)
+                        ).canonicalize())
+                    else:
+                        #print('Failed.')
+                        pass
+
+        return candidates
+
+    def __lt__(self, other):
+        return len(self.terms) < len(other.terms) or hash(self) < hash(other)
 
 class CNFTerm:
     def __init__(self, expression, sign):
@@ -77,6 +125,9 @@ class CNFTerm:
 
     def negative(self):
         return CNFTerm(self.expression, not self.sign)
+
+    def __lt__(self, other):
+        return hash(self) < hash(other)
 
 class Expression:
     def __init__(self, children):
@@ -285,7 +336,7 @@ class ExistentialQuantifier(Expression):
 
     def cnf(self, parent = None):
         replacement_expression = [
-            Constant(self.variable.name + '_')
+            Constant(self.variable.name)
         ]
 
         while parent is not None:
@@ -293,8 +344,12 @@ class ExistentialQuantifier(Expression):
                 replacement_expression.append(parent[0].variable)
 
             parent = parent[1]
+        if len(replacement_expression) == 1:
+            replacement_expression = replacement_expression[0]
+        else:
+            replacement_expression = Expression(replacement_expression)
 
-        return self.expression.substitute({self.variable: Expression(replacement_expression)}).cnf()
+        return self.expression.substitute({self.variable: replacement_expression}).cnf()
 
 class Negation(Expression):
     def __init__(self, term):
@@ -354,3 +409,6 @@ if __name__ == '__main__':
 
     print(str(expression))
     print(str(expression.cnf()))
+
+from unify import *
+

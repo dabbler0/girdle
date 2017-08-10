@@ -5,13 +5,14 @@ AXIOMS
     (= a b) => (= b a)
     (= a b) and (= b c) => (= a c)
 
+    (= (+ a 0) a)
     (= (+ a b) (+ b a))
     (= (+ a (+ b c)) (+ (+ a b) c))
-    (= a b) <=> (= (+ a c) (+ b c))
+    (= a b) <=> (= (+ c a) (+ c b))
 
     (= (* a b) (* b a))
     (= (* a (* b c)) (* (* a b) c))
-    (= a b) <=> (= (* a c) (* b c))
+    (= a b) <=> (= (* c a) (* c b))
     (= (* a (+ b c)) (+ (* a b) (* a c)))
 THEOREM
     (= (* x (+ x 0)) (+ (* x (+ x 0)) 0))
