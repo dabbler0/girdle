@@ -15,6 +15,9 @@ class CNF:
     def join(self, other):
         return CNF(self.disjunctions | other.disjunctions)
 
+    def make_independent(self):
+        return CNF(disjunction.clone_vars() for disjunction in self.disjunctions)
+
 class CNFDisjunction:
     def __init__(self, terms):
         self.terms = frozenset(terms)
@@ -26,10 +29,28 @@ class CNFDisjunction:
         return self.terms == other.terms
 
     def __str__(self):
-        return '(%s)' % ' \u2228 '.join(str(x) for x in self.terms)
+        if len(self.terms) > 1:
+            return '(%s)' % ' \u2228 '.join(str(x) for x in self.terms)
+        else:
+            return '%s' % ' \u2228 '.join(str(x) for x in self.terms)
 
     def join(self, other):
         return CNFDisjunction(self.terms | other.terms)
+
+    def get_all_variables(self):
+        for term in self.terms:
+            yield from term.get_all_variables()
+
+    def substitute(self, mapping):
+        return CNFDisjunction(term.substitute(mapping) for term in self.terms)
+
+    def clone_vars(self):
+        substitution = {}
+        for variable in self.get_all_variables():
+            if variable not in substitution:
+                substitution[variable] = Variable(variable.name)
+
+        return self.substitute(substitution)
 
 class CNFTerm:
     def __init__(self, expression, sign):
@@ -48,6 +69,12 @@ class CNFTerm:
         else:
             return str(self.expression)
 
+    def substitute(self, mapping):
+        return CNFTerm(self.expression.substitute(mapping), self.sign)
+
+    def get_all_variables(self):
+        yield from self.expression.get_all_variables()
+
     def negative(self):
         return CNFTerm(self.expression, not self.sign)
 
@@ -57,6 +84,10 @@ class Expression:
 
     def substitute(self, mapping):
         return Expression(tuple(x.substitute(mapping) for x in self.children))
+
+    def get_all_variables(self):
+        for x in self.children:
+            yield from x.get_all_variables()
 
     def __str__(self):
         return '(%s)' % (' '.join(str(x) for x in self.children))
@@ -81,6 +112,10 @@ class Constant:
         self.id = Constant._id
         self.name = name
 
+    def get_all_variables(self):
+        return
+        yield
+
     def substitute(self, mapping):
         return self
 
@@ -97,13 +132,16 @@ class Variable:
     _id = 0
     def __init__(self, name):
         Variable._id += 1
-        self.id = Constant._id
+        self.id = Variable._id
         self.name = name
 
     def substitute(self, mapping):
         if self in mapping:
             return mapping[self]
         return self
+
+    def get_all_variables(self):
+        yield self
 
     def __str__(self):
         return self.name
@@ -120,17 +158,40 @@ class Implication(Expression):
         self.left = left
         self.right = right
 
+    def substitute(self, mapping):
+        return Implication(self.left.substitute(mapping), self.right.substitute(mapping))
+
     def __hash__(self):
         return hash((self.left, self.right))
 
     def __eq__(self, other):
-        return self.left == other.left and self.right == other.right
+        return isinstance(other, Implication) and self.left == other.left and self.right == other.right
 
     def __str__(self):
         return '(%s \u21D2 %s)' % (str(self.left), str(self.right))
 
     def cnf(self, parent = None):
         return Disjunction(Negation(self.left), self.right).cnf(parent)
+
+class Equivalence(Expression):
+    def __init__(self, left, right):
+        self.left = left
+        self.right = right
+
+    def substitute(self, mapping):
+        return Equivalence(self.left.substitute(mapping), self.right.substitute(mapping))
+
+    def __hash__(self):
+        return hash((self.left, self.right))
+
+    def __eq__(self, other):
+        return isinstance(other, Equivalence) and self.left == other.left and self.right == other.right
+
+    def __str__(self):
+        return '(%s \u21D4 %s)' % (str(self.left), str(self.right))
+
+    def cnf(self, parent = None):
+        return Conjunction(Implication(self.left, self.right), Implication(self.right, self.left)).cnf(parent)
 
 class Disjunction(Expression):
     def __init__(self, left, right):
@@ -144,7 +205,7 @@ class Disjunction(Expression):
         return Disjunction(self.left.substitute(mapping), self.right.substitute(mapping))
 
     def __eq__(self, other):
-        return self.left == other.left and self.right == other.right
+        return isinstance(other, Disjunction) and self.left == other.left and self.right == other.right
 
     def __str__(self):
         return '(%s \u2228 %s)' % (str(self.left), str(self.right))
@@ -171,7 +232,7 @@ class Conjunction(Expression):
         return hash((self.left, self.right))
 
     def __eq__(self, other):
-        return self.left == other.left and self.right == other.right
+        return isinstance(other, Conjunction) and self.left == other.left and self.right == other.right
 
     def __str__(self):
         return '(%s \u2227 %s)' % (str(self.left), str(self.right))
@@ -200,7 +261,7 @@ class UniversalQuantifier(Expression):
         return '\u2200%s.%s' % (str(self.variable), str(self.expression))
 
     def __eq__(self, other):
-        return self.left == other.left and self.right == other.right
+        return isinstance(other, UniversalQuantifier) and self.left == other.left and self.right == other.right
 
     def cnf(self, parent = None):
         return self.expression.cnf((self, parent))
@@ -217,7 +278,7 @@ class ExistentialQuantifier(Expression):
         return hash((self.variable, self.expression))
 
     def __eq__(self, other):
-        return self.variable == other.variable and self.expression == other.expression
+        return isinstance(other, ExistentialQuantifier) and self.variable == other.variable and self.expression == other.expression
 
     def __str__(self):
         return '\u2203%s.%s' % (str(self.variable), str(self.expression))
@@ -246,7 +307,7 @@ class Negation(Expression):
         return hash(self.term)
 
     def __eq__(self, other):
-        return self.term == other.term
+        return isinstance(other, Negation) and self.term == other.term
 
     def __str__(self):
         return '\u00AC%s' % (str(self.term),)
@@ -272,23 +333,24 @@ class Negation(Expression):
             })
 
 # A test:
-eq = Constant('=')
-plus = Constant('+')
-a = Variable('a')
-b = Variable('b')
-expression = UniversalQuantifier(
-    a,
-    Implication(
-        Expression((eq, a, Expression((plus, a, a)))),
-        ExistentialQuantifier(
-            b,
-            Disjunction(
-                Expression((eq, a, Expression((plus, b, b)))),
-                Expression((eq, b, a))
+if __name__ == '__main__':
+    eq = Constant('=')
+    plus = Constant('+')
+    a = Variable('a')
+    b = Variable('b')
+    expression = UniversalQuantifier(
+        a,
+        Implication(
+            Expression((eq, a, Expression((plus, a, a)))),
+            ExistentialQuantifier(
+                b,
+                Disjunction(
+                    Expression((eq, a, Expression((plus, b, b)))),
+                    Expression((eq, b, a))
+                )
             )
         )
     )
-)
 
-print(str(expression))
-print(str(expression.cnf()))
+    print(str(expression))
+    print(str(expression.cnf()))
