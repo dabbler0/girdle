@@ -1,22 +1,27 @@
 CONSTANTS
     =, +, *, 0
 AXIOMS
-    (= a a)
-    (= a b) => (= b a)
-    (= a b) and (= b c) => (= a c)
+    (= a a) ; the reflexive property of equality
+    (= a b) => (= b a) ; the commutative property of equality
+    (= a b) and (= b c) => (= a c) ; the transitive property of equality
 
-    (= (+ a 0) a)
-    (= (+ a b) (+ b a))
-    (= (+ a (+ b c)) (+ (+ a b) c))
-    (= a b) <=> (= (+ c a) (+ c b))
+    (= (+ a 0) a) ; the definition of 0
+    (= (+ a b) (+ b a)) ; the commutative property of addition
+    (= (+ a (+ b c)) (+ (+ a b) c)) ; the associative property of addition
+    (= a b) <=> (= (+ c a) (+ c b)) ; the subtitution/cancellation law for addition
 
-    (= (* a b) (* b a))
-    (= (* a (* b c)) (* (* a b) c))
-    (= a b) <=> (= (* c a) (* c b))
-    (= (* a (+ b c)) (+ (* a b) (* a c)))
+    (= (* a b) (* b a)) ; the commutative property of multiplication
+    (= (* a (* b c)) (* (* a b) c)) ; the associative property of multiplication
+    (= a b) => (= (* c a) (* c b)) ; the substitution law for multiplication
+    (= (* c a) (* c b)) and ~(= c 0) => (= a b) ; the cancellation law for multiplication
+    (= (* a (+ b c)) (+ (* a b) (* a c))) ; the distributive property of multipilcation
 THEOREM
     (= (* x (+ x 0)) (+ (* x (+ x 0)) 0))
     (= (* x (+ x 0)) (+ (* x x) 0))
     (= (* x (+ x 0)) (+ (* x x) (* x 0)))
     (= (+ (* x x) 0) (+ (* x x) (* x 0)))
     (= 0 (* x 0))
+
+    (= (* a b) 0) and ~(= a 0) => (= (* a b) (* a 0))
+    (= (* a b) 0) and ~(= a 0) => (= b 0)
+    (= (* a b) 0) => (= a 0) or  (= b 0)

@@ -129,7 +129,7 @@ def parse_program(text):
 
     mode = None
     constants = {}
-    axioms = CNF(set()) # Empty axiom list
+    axioms = {} # Empty axiom list
     theorem_lines = []
     for i, line in enumerate(lines):
         if re.match('^\s*$', line) is not None:
@@ -140,7 +140,6 @@ def parse_program(text):
             mode = 'AXIOMS'
         elif line == 'THEOREM':
             mode = 'THEOREM'
-            axioms = axioms.make_independent()
 
         else:
             if mode is None:
@@ -153,8 +152,16 @@ def parse_program(text):
                     constants[constant] = Constant(constant)
 
             elif mode == 'AXIOMS':
-                axioms_here = parse(line, constants)
-                axioms = axioms.join(axioms_here.cnf())
+                split = line.split(';')
+                comment = 'a given axiom'
+                if len(split) > 1:
+                    comment = re.sub('^\s*', '', re.sub('\s*$', '', split[1]))
+                line = split[0]
+
+                axioms_here = parse(line, constants).cnf()
+
+                for axiom in axioms_here.disjunctions:
+                    axioms[axiom] = comment
 
             elif mode == 'THEOREM':
                 theorem_lines.append(parse(line, constants))

@@ -1,0 +1,20 @@
+Theorem Casework (x, y)
+    Whenever
+        x => y ; when true
+        ~x => y ; when false
+    Then
+        y
+    Proof
+        trivial.
+
+Theorem Induction (f, b, s, p)
+    Whenever
+        (f x) => (f (s x))
+        forall w. ((f x) => (w x) and (exists q. (w q))) => ((w b) or (exists m. ~(w m) and (w (s m))))
+
+        (p b) ; base case
+        (p x) => (p (s x)) ; inductive step
+    Then
+        (f x) => (p x)
+    Proof
+    

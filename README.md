@@ -20,6 +20,7 @@ The rules for reducion are as follows.
 First, turn all implications into "or" expressions like so:
 ```
 a => b ---> ~a or b
+```
 
 The expression should now consist only of `or`s and `and`s, with nots and quantifiers spread between. Bubble up the `and`s to the top by the distributive law:
 ```

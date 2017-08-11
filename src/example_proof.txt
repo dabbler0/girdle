@@ -1,0 +1,183 @@
+GIRDLE'S FORMAL PROOF OF THE ZERO PRODUCT PROPERTY
+
+This proof was expanded from the following shorthand proof:
+
+THEOREM
+    First, prove that 0 times anything is 0:
+
+        x * (x + 0) = x * (x + 0) + 0
+        x * (x + 0) = x * x + 0
+
+        x * (x + 0) = x * x + (x * 0)
+
+        x * x + 0 = x * x + (x * 0)
+
+        0 = x * 0
+
+    Then, use the cancellation law to show the zero product property:
+
+        (a * b = 0) and ~(a = 0) => (a * b = a * 0)
+        (a * b = 0) and ~(a = 0) => (b = 0)
+        (a * b = 0) => (a = 0) or (b = 0)
+
+        QED.
+
+We can then do things like "show our work" for the solution to a quadratic equation.
+
+TERMS
+    x, 1, 2, -1
+AXIOMS
+    x * x - 1 = 0
+    2 = 1 + 1
+    -1 + 1 = 0
+THEOREM
+    x * x - 1 = (x + 1) * (x - 1)
+    (x + 1) * (x - 1) = 0
+    x + 1 = 0 or x - 1 = 0
+    x = 1 or x = -1
+
+    QED.
+
+--------------------------------------------------------------------
+We now prove ∀x.(= (* x (+ x 0)) (+ (* x (+ x 0)) 0)) [result 1]
+Suppose for the sake of contradiction that:
+  ¬(= (* x (+ x 0)) (+ (* x (+ x 0)) 0))
+By the definition of 0 we have:
+  (= (+ a 0) a) [1]
+By our assumption we have:
+  ¬(= (* x (+ x 0)) (+ (* x (+ x 0)) 0)) [2]
+By the commutative property of equality we have:
+  (¬(= b a) ∨ (= a b)) [3]
+From [2] and [3] we have:
+  ¬(= (+ (* x (+ x 0)) 0) (* x (+ x 0))) [4]
+But [1] and [4] are contradictory. =><=
+
+We now prove ∀x.(= (* x (+ x 0)) (+ (* x x) 0)) [result 2]
+Suppose for the sake of contradiction that:
+  ¬(= (* x (+ x 0)) (+ (* x x) 0))
+By the definition of 0 we have:
+  (= (+ a 0) a) [1]
+By the commutative property of equality we have:
+  (¬(= b a) ∨ (= a b)) [2]
+By the substitution law for multiplication we have:
+  (¬(= b c) ∨ (= (* a b) (* a c))) [3]
+By the transitive property of equality we have:
+  (¬(= a c) ∨ ¬(= c b) ∨ (= a b)) [4]
+By our assumption we have:
+  ¬(= (* x (+ x 0)) (+ (* x x) 0)) [5]
+From [4] and [5] we have:
+  (¬(= (* x (+ x 0)) a) ∨ ¬(= a (+ (* x x) 0))) [6]
+From [3] and [6] we have:
+  (¬(= (+ x 0) a) ∨ ¬(= (* x a) (+ (* x x) 0))) [7]
+From [1] and [7] we have:
+  ¬(= (* x x) (+ (* x x) 0)) [8]
+From [2] and [8] we have:
+  ¬(= (+ (* x x) 0) (* x x)) [9]
+But [1] and [9] are contradictory. =><=
+
+We now prove ∀x.(= (* x (+ x 0)) (+ (* x x) (* x 0))) [result 3]
+Suppose for the sake of contradiction that:
+  ¬(= (* x (+ x 0)) (+ (* x x) (* x 0)))
+By the reflexive property of equality we have:
+  (= a a) [1]
+By the distributive property of multipilcation we have:
+  (= (* a (+ b c)) (+ (* a b) (* a c))) [2]
+By the transitive property of equality we have:
+  (¬(= a c) ∨ ¬(= c b) ∨ (= a b)) [3]
+By our assumption we have:
+  ¬(= (* x (+ x 0)) (+ (* x x) (* x 0))) [4]
+From [3] and [4] we have:
+  (¬(= a (+ (* x x) (* x 0))) ∨ ¬(= (* x (+ x 0)) a)) [5]
+From [2] and [5] we have:
+  ¬(= (+ (* x x) (* x 0)) (+ (* x x) (* x 0))) [6]
+But [1] and [6] are contradictory. =><=
+
+We now prove ∀x.(= (+ (* x x) 0) (+ (* x x) (* x 0))) [result 4]
+Suppose for the sake of contradiction that:
+  ¬(= (+ (* x x) 0) (+ (* x x) (* x 0)))
+By result 2 we have:
+  (= (* a (+ a 0)) (+ (* a a) 0)) [1]
+By the commutative property of equality we have:
+  (¬(= b a) ∨ (= a b)) [2]
+By the distributive property of multipilcation we have:
+  (= (* a (+ b c)) (+ (* a b) (* a c))) [3]
+By the transitive property of equality we have:
+  (¬(= a c) ∨ ¬(= c b) ∨ (= a b)) [4]
+By our assumption we have:
+  ¬(= (+ (* x x) 0) (+ (* x x) (* x 0))) [5]
+From [4] and [5] we have:
+  (¬(= a (+ (* x x) (* x 0))) ∨ ¬(= (+ (* x x) 0) a)) [6]
+From [3] and [6] we have:
+  ¬(= (+ (* x x) 0) (* x (+ x 0))) [7]
+From [2] and [7] we have:
+  ¬(= (* x (+ x 0)) (+ (* x x) 0)) [8]
+But [1] and [8] are contradictory. =><=
+
+We now prove ∀x.(= 0 (* x 0)) [result 5]
+Suppose for the sake of contradiction that:
+  ¬(= 0 (* x 0))
+By result 4 we have:
+  (= (+ (* a a) 0) (+ (* a a) (* a 0))) [1]
+By the subtitution/cancellation law for addition we have:
+  (¬(= (+ c a) (+ c b)) ∨ (= a b)) [2]
+By our assumption we have:
+  ¬(= 0 (* x 0)) [3]
+From [2] and [3] we have:
+  ¬(= (+ a 0) (+ a (* x 0))) [4]
+But [1] and [4] are contradictory. =><=
+
+We now prove ∀b.∀a.(((= (* a b) 0) ∧ ¬(= a 0)) ⇒ (= (* a b) (* a 0))) [result 6]
+Suppose for the sake of contradiction that:
+  ¬(= (* a b) (* a 0)) ∧ ¬(= a 0) ∧ (= (* a b) 0)
+By our assumption we have:
+  ¬(= (* a b) (* a 0)) [1]
+By result 5 we have:
+  (= 0 (* a 0)) [2]
+By the transitive property of equality we have:
+  (¬(= a c) ∨ ¬(= c b) ∨ (= a b)) [3]
+By our assumption we have:
+  (= (* a b) 0) [4]
+From [3] and [4] we have:
+  ((= (* a b) a) ∨ ¬(= 0 a)) [5]
+From [2] and [5] we have:
+  (= (* a b) (* a 0)) [6]
+But [1] and [6] are contradictory. =><=
+
+We now prove ∀b.∀a.(((= (* a b) 0) ∧ ¬(= a 0)) ⇒ (= b 0)) [result 7]
+Suppose for the sake of contradiction that:
+  (= (* a b) 0) ∧ ¬(= a 0) ∧ ¬(= b 0)
+By our assumption we have:
+  ¬(= a 0) [1]
+By our assumption we have:
+  ¬(= b 0) [2]
+By the cancellation law for multiplication we have:
+  (¬(= (* c a) (* c b)) ∨ (= a b) ∨ (= c 0)) [3]
+By our assumption we have:
+  (= (* a b) 0) [4]
+By result 6 we have:
+  ((= (* a b) (* a 0)) ∨ (= a 0) ∨ ¬(= (* a b) 0)) [5]
+From [4] and [5] we have:
+  ((= (* a b) (* a 0)) ∨ (= a 0)) [6]
+From [3] and [6] we have:
+  ((= b 0) ∨ (= a 0)) [7]
+From [2] and [7] we have:
+  (= a 0) [8]
+But [1] and [8] are contradictory. =><=
+
+We now prove ∀b.∀a.((= (* a b) 0) ⇒ ((= a 0) ∨ (= b 0))) [result 8]
+Suppose for the sake of contradiction that:
+  (= (* a b) 0) ∧ ¬(= a 0) ∧ ¬(= b 0)
+By our assumption we have:
+  ¬(= b 0) [1]
+By our assumption we have:
+  ¬(= a 0) [2]
+By result 7 we have:
+  ((= a 0) ∨ ¬(= (* a b) 0) ∨ (= b 0)) [3]
+By our assumption we have:
+  (= (* a b) 0) [4]
+From [3] and [4] we have:
+  ((= a 0) ∨ (= b 0)) [5]
+From [2] and [5] we have:
+  (= b 0) [6]
+But [1] and [6] are contradictory. =><=
+
