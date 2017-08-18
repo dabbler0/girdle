@@ -117,12 +117,35 @@ def get_forward_reasoning(filtered_visited, goal, original):
             ordering.append(x)
 
     # Topological sort everything except for the forward chain
-    if filtered_visited[goal][0] in nodes_on_forward_chain:
-        dfs(filtered_visited[goal][1])
-    else:
-        dfs(filtered_visited[goal][0])
+    dfs(goal)
 
-    return ordering, reversed(forward_chain)
+    ordering = [x for x in ordering if x not in nodes_on_forward_chain]
+
+    return ordering, forward_chain#list(reversed(forward_chain))
+
+def print_forward_reasoning(reason_map, ordering, forward_chain, axioms):
+    # Normal axiomatic ordering
+    inverse_map = {}
+    for i, statement in enumerate(ordering):
+        inverse_map[statement] = i + 1
+
+    for i, statement in enumerate(reversed(forward_chain)):
+        inverse_map[statement] = i + len(ordering) + 1
+
+    for i, statement in enumerate(ordering):
+        if reason_map[statement] is None:
+            print('By %s we have:' % (axioms[statement],))
+            print('  %s [%d]' % (str(statement), i + 1))
+        else:
+            a, b = reason_map[statement]
+            print('From [%d] and [%d] we have:' % (inverse_map[a], inverse_map[b]))
+            print('  %s [%d]' % (str(statement), i + 1))
+
+    # Special forward-chain reasoning.
+    for i, statement in enumerate(forward_chain[1:]):
+        a, b = reason_map[forward_chain[i - 1]]
+        print('From [%d] and [%d] we have:' % (inverse_map[a], inverse_map[b]))
+        print('  ~(%s) [%d]' % (str(statement), i + len(ordering) + 1))
 
 def get_backward_reasoning(filtered_visited, goal):
     visited_nodes = set()
@@ -201,6 +224,12 @@ def check_proof(program):
             if len(disjunctions) == 1 and False:
                 disjunction = next(iter(disjunctions))
                 forward_result = get_forward_reasoning(reasoning, contradiction, disjunction)
+                if forward_result is None:
+                    reasoning, order = get_backward_reasoning(reasoning, contradiction)
+                    print_backward_reasoning(reasoning, order, {**axioms, **disjunctions}, disjunctions)
+                else:
+                    ordering, chain = forward_result
+                    print_forward_reasoning(reasoning, ordering, chain, {**axioms})
             else:
                 reasoning, order = get_backward_reasoning(reasoning, contradiction)
                 print_backward_reasoning(reasoning, order, {**axioms, **disjunctions}, disjunctions)

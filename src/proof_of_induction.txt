@@ -1,3 +1,5 @@
+Axioms
+    forall x. forall y. exists f. f(y) = x
 Theorem Casework (x, y)
     Whenever
         x => y ; when true
@@ -9,12 +11,40 @@ Theorem Casework (x, y)
 
 Theorem Induction (f, b, s, p)
     Whenever
-        (f x) => (f (s x))
-        forall w. ((f x) => (w x) and (exists q. (w q))) => ((w b) or (exists m. ~(w m) and (w (s m))))
+        f(x) => f(s(x)) ; inductible
+        forall w. (f(x) => w(x) and (exists q. w(q))) => (w(b) or (exists m. ~w(m) and w(s(m)))) ; well-founded
 
-        (p b) ; base case
-        (p x) => (p (s x)) ; inductive step
+        p(b) ; base case
+        p(x) => p(s(x)) ; inductive step
     Then
-        (f x) => (p x)
+        f(x) => p(x)
     Proof
-    
+        np(x) := f(x) and ~p(x)
+
+        Contradiction (exists l. np(l))
+            np(b) or (exists m. ~np(m) and np(s(m)))
+
+            ~np(b)
+
+            (exists m. ~w(m) and w(s(m)))
+
+            Choose q st ~np(q) and np(s(q)) ; "Choose" searches for a proof that one exists, then assigns as a constant for the rest of the proof.
+
+            p(q) => p(s(q))
+            p(q) and ~p(s(q))
+
+            =><=
+
+        forall x. ~np(x)
+        forall x. ~(f(x) and ~p(x))
+        forall x. f(x) => p(x)
+        QED.
+
+        add(a, b) := a + b ; Technically, functional substitutions are enumerable, but we do not attempt to enumerate them.
+                           ; if you need to define new functions, you must do it yourself.
+                           ; If you then, say wanted to prove:
+
+        add(a, b) = add(b, a) ; then we would open up four channels for reduction based on:
+                              ; a + b = add(b, a)
+                              ; add(a, b) = b + a
+                              ; a + b = b + a

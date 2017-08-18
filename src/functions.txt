@@ -1,0 +1,25 @@
+Every theorem should look like this:
+
+Theorem Theoremname (v1, v2, v3)
+    Whenever
+        condition1
+        condition2 ; name of condition
+        condition3
+    Then statement
+    Proof
+        Some incredibly florid explaation
+            line
+
+        Some extremely well-thought-out explanation
+            line
+            line
+
+        Some explanatory text, which suffices to comprise an explanation
+            QED
+
+Ore formally, a PROOF_BLOCK (statement) looks like that Proof block above, so a Theorem looks like:
+
+Theorem Theoremname
+    Whenever
+        NAMED_AXIOM_LIST
+    Then AXIOM
