@@ -5,11 +5,12 @@ class TokenStream:
         self.tokens = tokens
         self.index = 0
 
-    def peek(self):
-        return self.tokens[self.index]
+    def peek(self, idx = 0):
+        return self.tokens[self.index + idx]
 
     def consume(self):
         self.index += 1
+        return self.tokens[self.index - 1]
 
 class AxiomParser:
     def __init__(self, binary_ops, unary_prefix_ops, unary_postfix_ops, constants, tokens):
@@ -42,7 +43,7 @@ class AxiomParser:
         return self.parse_existential_quantifier()
 
     def parse_existential_quantifier(self):
-        if self.tokens.peek() == 'exists':
+        if self.tokens.peek() == 'exists' or self.tokens.peek() == 'choose':
             self.tokens.consume()
             vname = self.tokens.peek()
 
@@ -292,15 +293,28 @@ class ProgramParser:
 
     def parse_axiom_line(self):
         parser = AxiomParser(self.binary_ops, self.prefix_ops, self.postfix_ops, self.constants, self.tokens)
-        return parser.parse_lexpression()
+        axiom = parser.parse_lexpression()
+
+        axiom_name = ''
+
+        # Axioms can have string names:
+        if self.tokens.peek()[0] == '\'':
+            return (axiom, self.tokens.consume())
+
+        return (axiom, 'a given axiom')
 
 class TheoremParser:
     def __init__(self, context, arguments):
+        self.context = context
+
         self.constants = {**context.constants}
+
         for argument in arguments:
             self.constants[argument] = Constant(argument)
 
         self.tokens = context.tokens
+        self.axioms = [*context.axioms]
+        self.theorems = {**context.theorems}
 
     def parse_theorem_line(self):
         '''
@@ -315,7 +329,107 @@ class TheoremParser:
         if self.tokens.peek() == 'choose':
             return self.parse_choose_line()
 
+        # Test for 'define' statement
+        if self.tokens.peek() == 'define':
+            return self.parse_define_line()
+
+        # Test for 'apply' statement
         if self.tokens.peek() == 'apply':
             return self.parse_apply_line()
 
         return self.parse_statement_line()
+
+    def prove(self):
+        # TODO call prove.py procedure.
+
+    def parse_choose_line(self):
+        '''
+        "choose" takes the places of "exists" in a line, but then creates a constant.
+        '''
+        parser = AxiomParser(self.context.binary_ops, self.context.prefix_ops, self.context.postfix_ops, self.constants, self.tokens)
+        axiom = parser.parse_lexpression()
+
+        if isinstance(axiom, ExistentialQuantifier):
+            # Attempt to prove that such a thing exists:
+            if self.prove(axiom):
+                # If it does, add it to constants.
+                self.constants[axiom.variable.name] = Constant(axiom.variable.name)
+        else:
+            raise Exception('Some internal error occurred (with choose_line).')
+
+    def parse_statement_line(self):
+        parser = AxiomParser(self.context.binary_ops, self.context.prefix_ops, self.context.postfix_ops, self.constants, self.tokens)
+        self.prove(parser.parse_lexpression())
+
+    def parse_define_line(self):
+        '''
+        There are two kinds of define line. They look like:
+        define f(x, y) = x + y
+        define f(x, y) <=> x = y
+
+        The left side must always be a functional expression
+        The operator in the middle is either "equals" or "iff"
+
+        If the line matches, then the resulting statement(s) are added to the axioms list
+        '''
+
+        #Advance past the "define" token
+        self.tokens.consume()
+
+        # Get the token that is being defined
+        definition = self.tokens.peek()
+
+        # Add it as a global
+        self.constants[definition] = Constant(definition)
+
+        # Parse the resulting axiom out
+        parser = AxiomParser(self.context.binary_ops, self.context.prefix_ops, self.context.postfix_ops, self.constants, self.tokens)
+        axiom = parser.parse_lexpression()
+
+        # Check that the axiom is of valid type
+        quantifiers = []
+        while isinstance(axiom, UniversalQuantifier):
+            quantifiers.append(axiom.variable)
+            axiom = axiom.expression
+
+        # We can handle equality defines
+        if (isinstance(axiom, Expression) and
+                axiom.children[0] == '=' and
+                isinstance(axiom.children[1], Expression)):
+
+            functor = axiom.children[1]
+
+            if functor != self.constants[definition]:
+                if not all(x in functor.children for x in quantifiers):
+                    return Exception('Define statement contains invalid universal quantifiers')
+
+                if not all(isinstance(x, Variable) for x in functor.children[1:]):
+                    return Exception('Define statement is not about a new functor')
+
+                if functor.children[0] != self.constants[definition]
+                    return Exception('Define statement is not about a new functor')
+
+        #...and iff defines
+        elif isinstance(axiom, Equivalence):
+            functor = axiom.left
+
+            if functor != self.constants[definition]:
+                if not all(x in functor.children for x in quantifiers):
+                    return Exception('Define statement contains invalid universal quantifiers')
+
+                if not all(isinstance(x, Variable) for x in functor.children[1:]):
+                    return Exception('Define statement is not about a new functor')
+
+                if functor.children[0] != self.constants[definition]
+                    return Exception('Define statement is not about a new functor')
+
+        # But nothing else
+        else:
+            return Exception('Define statement is not an equality or an equivalence')
+
+        # Add the axiom
+        self.axioms.append(
+            (axiom, 'definition of %s' % (definition,))
+        )
+
+        return
